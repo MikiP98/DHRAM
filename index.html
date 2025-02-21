@@ -6,9 +6,49 @@
     <title>Document</title>
 
     <style>
+        * {
+            min-width: 0;
+            min-height: 0;
+        }
+        body {
+            margin: 0;
+            padding: 2vh;
+        }
+
         form {
             display: flex;
             flex-direction: column;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+
+            background-image: url("media/info.png");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            width: 1.5vh;
+            height: 1.5vh;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
         }
     </style>
 </head>
@@ -16,15 +56,18 @@
     <form>
         <span class="form_entry">
             <label for="threadCountInput">Total CPU thread count:</label>
-            <input type="number" name="threads" id="threadCountInput" onKeyUp="runRAMCalculation()" placeholder="E.G. 4" required>
+            <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
             <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
         </span>
         <span class="form_entry">
             <label for="memoryInput">Total system memory amount (in GB):</label>
-            <input type="number" name="memory" id="memoryInput" onKeyUp="runRAMCalculation()" placeholder="E.G. 16" width="10%" required>
+            <input type="number" name="memory" id="memoryInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 16" width="10%" required>
         </span>
         <span>
             <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
+            <div class="tooltip">
+                <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
+            </div>
         </span>
     </form>
 
@@ -81,6 +124,11 @@
         } else if (!isNumeric(memoryInput.value)) {
             calculationResultElement.innerText = "Please enter a valid memory amount";
             alert("Please enter a valid memory amount");
+        }
+    }
+    function tryToRunCalculation() {
+        if (isNumeric(threadCountInput.value) && isNumeric(memoryInput.value)) {
+            runRAMCalculation();
         }
     }
 
