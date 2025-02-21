@@ -1,0 +1,30 @@
+<head>
+    <label for="memory">Total system memory amount (in GB) :</label>
+    <input type="text" id="memory" onKeyUp="thing()">
+    <script>
+        function thing() {
+            let memoryMax = (((document.getElementById("memory").value) * 1024) * 0.75);
+            let memoryMin = (4096 + (navigator.hardwareConcurrency * 512));
+            if (memoryMin > memoryMax) {
+                memoryMin = memoryMax;
+            }
+            document.getElementById("result").innerText = "You should allocate: " + memoryMin + "MB";
+            console.log(memoryMax);
+
+            if (memoryMin > 16000) {
+                document.getElementById("gcFlags").innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+UseFastUnorderedTimeStamps";
+
+            } else if (memoryMax < 4000 && memoryMax != 0) {
+                document.getElementById("gcFlags").innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
+
+            } else {
+                document.getElementById("gcFlags").innerText = "";
+            }
+        }
+        window.onload = thing;
+    </script>
+</head>
+<body>
+    <p id="result">Failed, do you have javascript execution disabled?</p>
+    <p id="gcFlags"></p>
+</body>
