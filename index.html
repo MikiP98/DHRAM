@@ -4,15 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="icon" type="image/svg+xml" href="media/DH-Logo.svg">
 
     <style>
         * {
             min-width: 0;
             min-height: 0;
+
+            --height: 10vh;
         }
         body {
             margin: 0;
             padding: 1.2vh;
+
+            height: var(--height);
+            width: 30vw;
+
+            display: grid;
+            grid-template-columns: var(--height) auto;
+        }
+        body > div {
+            height: 100%;
+        }
+        #logo {
+            width: var(--height);
+        }
+        #logo > img {
+            height: 100%;
         }
 
         form {
@@ -54,26 +72,31 @@
     </style>
 </head>
 <body>
-    <form>
-        <span class="form_entry">
-            <label for="threadCountInput">Total CPU thread count:</label>
-            <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
-            <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
-        </span>
-        <span class="form_entry">
-            <label for="memoryInput">Total system memory amount (in GB):</label>
-            <input type="number" name="memory" id="memoryInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 16" width="10%" required>
-        </span>
-        <span>
-            <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
-            <div class="tooltip">
-                <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
-            </div>
-        </span>
-    </form>
-
-    <p id="result"></p>
-    <p id="gcFlags"></p>
+    <div id="logo">
+        <img src="media/DH-Logo.svg" alt="DH Logo">
+    </div>
+    <div id="content">
+        <form>
+            <span class="form_entry">
+                <label for="threadCountInput">Total CPU thread count:</label>
+                <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
+                <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
+            </span>
+            <span class="form_entry">
+                <label for="memoryInput">Total system memory amount (in GB):</label>
+                <input type="number" name="memory" id="memoryInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 16" width="10%" required>
+            </span>
+            <span>
+                <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
+                <div class="tooltip">
+                    <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
+                </div>
+            </span>
+        </form>
+    
+        <p id="result"></p>
+        <p id="gcFlags"></p>
+    </div>
 </body>
 <script>
     const threadCountInput = document.getElementById("threadCountInput");
