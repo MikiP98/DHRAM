@@ -1,30 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <label for="memory">Total system memory amount (in GB) :</label>
-    <input type="text" id="memory" onKeyUp="thing()">
-    <script>
-        function thing() {
-            let memoryMax = (((document.getElementById("memory").value) * 1024) * 0.75);
-            let memoryMin = (4096 + (navigator.hardwareConcurrency * 512));
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <form>
+        <span class="form_entry">
+            <label for="threadCountInput">Total CPU thread count:</label>
+            <input type="number" name="threads" id="threadCountInput" onKeyUp="runRAMCalculation()" placeholder="E.G. 4" required>
+            <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
+        </span>
+        <span class="form_entry">
+            <label for="memoryInput">Total system memory amount (in GB):</label>
+            <input type="number" name="memory" id="memoryInput" onKeyUp="runRAMCalculation()" placeholder="E.G. 16" width="10%" required>
+        </span>
+        <span>
+            <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
+        </span>
+    </form>
+
+    <p id="result"></p>
+    <p id="gcFlags"></p>
+</body>
+<script>
+    const threadCountInput = document.getElementById("threadCountInput");
+    const memoryInput = document.getElementById("memoryInput");
+
+    const calculationResultElement = document.getElementById("result");
+    const gcFlagsElement = document.getElementById("gcFlags");
+
+    function runRAMCalculation() {
+        try {
+            let memoryMax = (((memoryInput.value) * 1024) * 0.75);
+            let memoryMin = (4096 + (threadCountInput.value * 512));
             if (memoryMin > memoryMax) {
                 memoryMin = memoryMax;
             }
-            document.getElementById("result").innerText = "You should allocate: " + memoryMin + "MB";
+            calculationResultElement.innerText = "You should allocate: " + memoryMin + "MB";
             console.log(memoryMax);
 
             if (memoryMin > 16000) {
-                document.getElementById("gcFlags").innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+UseFastUnorderedTimeStamps";
+                gcFlagsElement.innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+UseFastUnorderedTimeStamps";
 
             } else if (memoryMax < 4000 && memoryMax != 0) {
-                document.getElementById("gcFlags").innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
+                gcFlagsElement.innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
 
             } else {
-                document.getElementById("gcFlags").innerText = "";
+                gcFlagsElement.innerText = "";
             }
+        } catch (error) {
+            calculationResultElement.innerText = "Failed, do you have javascript execution disabled?";
         }
-        window.onload = thing;
-    </script>
-</head>
-<body>
-    <p id="result">Failed, do you have javascript execution disabled?</p>
-    <p id="gcFlags"></p>
-</body>
+    }
+    function autoDetectThreadCount() {
+        threadCountInput.value = navigator.hardwareConcurrency;
+        if (isNumeric(threadCountInput.value)) {
+            if (calculationResultElement.innerText == "Please enter a valid thread count") {
+                calculationResultElement.innerText = "";
+            }
+        } else {
+            alert("Failed to auto detect thread count");
+        }
+        if (isNumeric(memoryInput.value)) {
+            runRAMCalculation();
+        }
+    }
+    function checkAndRunRAMCalculation() {
+        if (!isNumeric(threadCountInput.value)) {
+            calculationResultElement.innerText = "Please enter a valid thread count";
+            alert("Please enter a valid thread count");
+        } else if (!isNumeric(memoryInput.value)) {
+            calculationResultElement.innerText = "Please enter a valid memory amount";
+            alert("Please enter a valid memory amount");
+        }
+    }
+
+    // Dan: https://stackoverflow.com/users/17121/dan
+    function isNumeric(str) {
+        if (typeof str != "string") return false // we only process strings!  
+        return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+                !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+    }
+</script>
+</html>
