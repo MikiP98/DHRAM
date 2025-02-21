@@ -15,22 +15,41 @@
         }
         body {
             margin: 0;
-            padding: 1.2vh;
+            padding: 0.8vh;
+            padding-top: 1.4vh;
 
-            height: var(--height);
-            width: 30vw;
+            background-color: whitesmoke;
+        }
+
+        #calculatorContainer {
+            height: auto;
+            width: auto;
 
             display: grid;
             grid-template-columns: var(--height) auto;
         }
-        body > div {
+        #calculatorContainer > div {
             height: 100%;
         }
+
         #logo {
             width: var(--height);
+
+            display: flex;
+            justify-content: center;
         }
         #logo > img {
-            height: 100%;
+            height: calc(var(--height) * 0.8);
+            width: calc(var(--height) * 0.8);
+            filter: saturate(0.6) brightness(0.95) contrast(0.95) drop-shadow(0 0 0.333vh #333);
+        }
+        @media screen and (orientation: portrait) {
+            #calculatorContainer {
+                grid-template-columns: auto;
+            }
+            #logo {
+                display: none;
+            }
         }
 
         form {
@@ -69,34 +88,44 @@
         .tooltip:hover .tooltiptext {
             visibility: visible;
         }
+
+        #gcFlagsContainer {
+            padding: 1.2vh;
+            padding-top: 4vh;
+        }
     </style>
 </head>
 <body>
-    <div id="logo">
-        <img src="media/DH-Logo.svg" alt="DH Logo">
+    <div id="calculatorContainer">
+        <div id="logo">
+            <img src="media/DH-Logo.svg" alt="DH Logo">
+        </div>
+        <div id="content">
+            <form>
+                <span class="form_entry">
+                    <label for="threadCountInput">Total CPU thread count:</label>
+                    <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
+                    <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
+                </span>
+                <span class="form_entry">
+                    <label for="memoryInput">Total system memory amount (in GB):</label>
+                    <input type="number" name="memory" id="memoryInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 16" width="10%" required>
+                </span>
+                <span>
+                    <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
+                    <div class="tooltip">
+                        <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
+                    </div>
+                </span>
+            </form>
+        
+            <p id="result"></p>
+            <p id="gcFlagsInfo"></p>
+        </div>
     </div>
-    <div id="content">
-        <form>
-            <span class="form_entry">
-                <label for="threadCountInput">Total CPU thread count:</label>
-                <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
-                <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
-            </span>
-            <span class="form_entry">
-                <label for="memoryInput">Total system memory amount (in GB):</label>
-                <input type="number" name="memory" id="memoryInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 16" width="10%" required>
-            </span>
-            <span>
-                <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
-                <div class="tooltip">
-                    <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
-                </div>
-            </span>
-        </form>
-    
-        <p id="result"></p>
-        <p id="gcFlags"></p>
-    </div>
+    <!-- <div id="gcFlagsContainer">
+        GC/JVM tuning flags --------- \/
+    </div> -->
 </body>
 <script>
     const threadCountInput = document.getElementById("threadCountInput");
@@ -116,7 +145,7 @@
             console.log(memoryMax);
 
             if (memoryMin > 16000) {
-                gcFlagsElement.innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+UseFastUnorderedTimeStamps";
+                gcFlagsElement.innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch";
 
             } else if (memoryMax < 4000 && memoryMax != 0) {
                 gcFlagsElement.innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
