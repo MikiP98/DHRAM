@@ -12,14 +12,26 @@
             min-height: 0;
 
             --height: 10vh;
+            --default-font-size: calc(0.1vh + 16px);
+
+            font-family: monospace;
+        }
+        @media screen and (orientation: portrait) {
+            * {
+                --default-font-size: calc(0.1vw + 16px);
+            }
         }
         body {
             margin: 0;
-            padding: 0.8vh;
+            padding: 0;
             padding-top: 1.4vh;
 
             background-color: whitesmoke;
         }
+        p, label, li {
+            font-size: var(--default-font-size);
+        }
+        
 
         #calculatorContainer {
             height: auto;
@@ -93,6 +105,52 @@
             padding: 1.2vh;
             padding-top: 4vh;
         }
+        #gcFlagList {
+            display: grid;
+            grid-template-columns: auto;
+            gap: 1vh;
+        }
+        #gcFlagList > li {
+            display: flex;
+            flex-direction: column;
+            font-size: calc(var(--default-font-size) - 2px);
+        }
+
+        .textButton {
+            cursor: pointer;
+            color: blue;
+        }
+
+        .invisible {
+            visibility: hidden;
+        }
+
+        .codeBox {
+            background-color: rgba(136, 136, 136, 0.333);
+            margin: 0.35vh;
+            padding: 0.15vh;
+
+            --small-font-size: calc(var(--default-font-size) - 4px);
+            font-size: var(--small-font-size);
+            border-radius: calc(var(--small-font-size) * 0.5);
+
+
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.333);
+        }
+        #gcFlagList > li .codeBox {
+            --small-font-size: calc(var(--default-font-size) - 6px);
+            margin: 0.4vh;
+            padding: 0.1vh;
+        }
+
+        @media screen and (orientation: portrait) {
+            .form_entry {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 1.2vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -105,7 +163,12 @@
                 <span class="form_entry">
                     <label for="threadCountInput">Total CPU thread count:</label>
                     <input type="number" name="threads" id="threadCountInput" onKeyUp="tryToRunCalculation()" placeholder="E.G. 4" required>
-                    <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
+                    <span>
+                        <button type="button" onclick="autoDetectThreadCount()">Auto detect</button>
+                        <div class="tooltip">
+                            <span class="tooltiptext">Auto detects the number of available CPU threads on the system</span>
+                        </div>
+                    </span>
                 </span>
                 <span class="form_entry">
                     <label for="memoryInput">Total system memory amount (in GB):</label>
@@ -114,18 +177,56 @@
                 <span>
                     <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
                     <div class="tooltip">
-                        <span class="tooltiptext">Refreshes calculation incase it fails to do it automatically</span>
+                        <span class="tooltiptext">Refreshes calculation in case it fails to do it automatically</span>
                     </div>
                 </span>
             </form>
         
             <p id="result"></p>
-            <p id="gcFlagsInfo"></p>
+            <p id="gcFlagsInfo" class="invisible">
+                You'd be allocating a lot of memory, it's recommended to use some GC/JVM tuning flags e.g.:<br>
+                <span class="codeBox">-XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch</span><button>Copy</button><br>
+                If those flags aren't enough or do not work, you can try one of the sets from below
+            </p>
         </div>
     </div>
-    <!-- <div id="gcFlagsContainer">
-        GC/JVM tuning flags --------- \/
-    </div> -->
+    <div id="gcFlagsContainer">
+        <p>GC/JVM tuning flag sets <span id="gcFlagListToggle" class="textButton" onclick="toggleGCFlags()">--- SHOW ---</span></p>
+        <ul id="gcFlagList" class="invisible">
+            <li>
+                <span>Requires JAVA 21+, these are in theory one of the best flags you can get</span>
+                <span>
+                    <span class="codeBox">-XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch</span>
+                    <button>Copy</button>
+                </span>
+            </li>
+            <li>
+                <span>An alternative to the first flag set, some say it performs better, some say it performs worse. Good thing to check if the first set did not provide sufficient result</span>
+                <span>
+                    <span class="codeBox">-XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:+AlwaysPreTouch</span>
+                    <button>Copy</button>
+                </span>
+            </li>
+            <li>
+                <span>Cut down version of the first flag set, less idiot proof, but should work on older JAVA and in theory still be better then the flags from below</span>
+                <span>
+                    <span class="codeBox">-XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+AlwaysPreTouch</span>
+                    <button>Copy</button>
+                </span>
+            </li>
+            <li>
+                <span>Old flags from many years ago, still relevant and better then default, slightly modified to fix a memory "leak" and tuned for bigger allocation amounts. Works even with very old JAVA versions and should work on every system. Can be further tuned to the particular system and mods to mayube even overcome the flag sets above, but it requires a lot of benchmarking and time</span>
+                <span>
+                    <span class="codeBox">-XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+AlwaysPreTouch -XX:G1NewSizePercent=40 -XX:G1MaxNewSizePercent=50 -XX:G1HeapRegionSize=16M -XX:G1ReservePercent=15 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true</span>
+                    <button>Copy</button>
+                </span>
+            </li>
+        </ul>
+        <p class="invisible">
+            G/JVM tuning flags should be put just after RAM allocation flags (XMX, XMS and XSS if present) if those are present (e.g. Modrinth has a slider so you don't need to also put in the allocation flags)<br>
+            And should replace every other flag that is present (Only on most launchers! E.g. CurseForge has some of its own flags, IDK which should be replaced and which should be kept) 
+        </p>    
+    </div>
 </body>
 <script>
     const threadCountInput = document.getElementById("threadCountInput");
@@ -133,25 +234,31 @@
 
     const calculationResultElement = document.getElementById("result");
     const gcFlagsElement = document.getElementById("gcFlagsInfo");
+    const gcFlagList = document.getElementById("gcFlagList");
+    const gcFlagListToggle = document.getElementById("gcFlagListToggle");
 
     function runRAMCalculation() {
         try {
             let memoryMax = (((memoryInput.value) * 1024) * 0.75);
-            let memoryMin = (4096 + (threadCountInput.value * 512));
-            if (memoryMin > memoryMax) {
-                memoryMin = memoryMax;
+            let memoryRecommended = (4096 + (threadCountInput.value * 512));
+            if (memoryRecommended > memoryMax) {
+                memoryRecommended = memoryMax;
             }
-            calculationResultElement.innerText = "You should allocate: " + memoryMin + "MB";
+
+            // TODO: Fix XMS when too low memory
+            calculationResultElement.innerHTML = "You should allocate: " + memoryRecommended + "MB; <span class=\"codeBox\">-Xmx" + memoryRecommended + "M -Xms4096M</span><button>Copy</button><br>";
             console.log(memoryMax);
 
-            if (memoryMin > 16000) {
-                gcFlagsElement.innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch";
+            if (memoryRecommended > 16000) {
+                gcFlagsElement.classList.remove("invisible");
+                // gcFlagsElement.innerText = "You'd be allocating a lot of memory, consider using the following flags: -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch";
 
             } else if (memoryMax < 4000 && memoryMax != 0) {
-                gcFlagsElement.innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
-
+                // gcFlagsElement.innerText = "You'd be dangerously low on total free system memory, you may need to fiddle around with a lower memory allocation."
+                // TODO: Bring this back
             } else {
-                gcFlagsElement.innerText = "";
+                gcFlagsElement.classList.add("invisible");
+                // gcFlagsElement.innerText = "";
             }
         } catch (error) {
             calculationResultElement.innerText = "Failed, do you have javascript execution disabled?";
@@ -177,6 +284,8 @@
         } else if (!isNumeric(memoryInput.value)) {
             calculationResultElement.innerText = "Please enter a valid memory amount";
             alert("Please enter a valid memory amount");
+        } else {
+            runRAMCalculation();
         }
     }
     function tryToRunCalculation() {
@@ -190,6 +299,25 @@
         if (typeof str != "string") return false // we only process strings!  
         return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
                 !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+    }
+
+    // function copyToClipboard(text) {
+    //     var dummy = document.createElement("textarea");
+    //     document.body.appendChild(dummy);
+    //     dummy.value = text;
+    //     dummy.select();
+    //     document.execCommand("copy");
+    //     document.body.removeChild(dummy);
+    // }
+
+    function toggleGCFlags() {
+        if (gcFlagList.classList.contains("invisible")) {
+            gcFlagList.classList.remove("invisible");
+            gcFlagListToggle.innerText = "--- HIDE ---";
+        } else {
+            gcFlagList.classList.add("invisible");
+            gcFlagListToggle.innerText = "--- SHOW ---";
+        }
     }
 </script>
 </html>
