@@ -5,153 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="icon" type="image/svg+xml" href="media/DH-Logo.svg">
-
-    <style>
-        * {
-            min-width: 0;
-            min-height: 0;
-
-            --height: 10vh;
-            --default-font-size: calc(0.1vh + 16px);
-
-            font-family: monospace;
-        }
-        @media screen and (orientation: portrait) {
-            * {
-                --default-font-size: calc(0.1vw + 16px);
-            }
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            padding-top: 1.4vh;
-
-            background-color: whitesmoke;
-        }
-        p, label, li {
-            font-size: var(--default-font-size);
-        }
-        
-
-        #calculatorContainer {
-            height: auto;
-            width: auto;
-
-            display: grid;
-            grid-template-columns: var(--height) auto;
-        }
-        #calculatorContainer > div {
-            height: 100%;
-        }
-
-        #logo {
-            width: var(--height);
-
-            display: flex;
-            justify-content: center;
-        }
-        #logo > img {
-            height: calc(var(--height) * 0.8);
-            width: calc(var(--height) * 0.8);
-            /* filter: saturate(0.6) brightness(0.95) contrast(0.95) drop-shadow(0 0 0.333vh #333); */
-        }
-        @media screen and (orientation: portrait) {
-            #calculatorContainer {
-                grid-template-columns: auto;
-            }
-            #logo {
-                display: none;
-            }
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .tooltip {
-            position: relative;
-            top: 0.5vh;
-            display: inline-block;
-            border-bottom: 1px dotted black;
-
-            background-image: url("media/info.svg");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            width: 1.667vh;
-            height: 1.667vh;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 120px;
-            background-color: black;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 0;
-
-            /* Position the tooltip */
-            position: absolute;
-            z-index: 1;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-        }
-
-        #gcFlagsContainer {
-            padding: 1.2vh;
-            padding-top: 4vh;
-        }
-        #gcFlagList {
-            display: grid;
-            grid-template-columns: auto;
-            gap: 1vh;
-        }
-        #gcFlagList > li {
-            display: flex;
-            flex-direction: column;
-            font-size: calc(var(--default-font-size) - 2px);
-        }
-
-        .textButton {
-            cursor: pointer;
-            color: blue;
-        }
-
-        .invisible {
-            visibility: hidden;
-        }
-
-        .codeBox {
-            background-color: rgba(136, 136, 136, 0.333);
-            margin: 0.35vh;
-            padding: 0.15vh;
-
-            --small-font-size: calc(var(--default-font-size) - 4px);
-            font-size: var(--small-font-size);
-            border-radius: calc(var(--small-font-size) * 0.5);
-
-
-            box-sizing: border-box;
-            border: 1px solid rgba(0, 0, 0, 0.333);
-        }
-        #gcFlagList > li .codeBox {
-            --small-font-size: calc(var(--default-font-size) - 6px);
-            margin: 0.4vh;
-            padding: 0.1vh;
-        }
-
-        @media screen and (orientation: portrait) {
-            .form_entry {
-                display: flex;
-                flex-direction: column;
-                margin-bottom: 1.2vh;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="calculatorContainer">
@@ -178,6 +32,9 @@
                     <button type="button" onclick="checkAndRunRAMCalculation()">Run Calculation</button>
                     <div class="tooltip">
                         <span class="tooltiptext">Refreshes calculation in case it fails to do it automatically</span>
+                    </div>
+                    <div class="tooltip help">
+                        <span class="tooltiptext">The formula for the calculation is as follows:<br>min(((memoryAmount * 1024) * 0.75), (4096 + (threadCount * 512)))</span>
                     </div>
                 </span>
             </form>
@@ -241,9 +98,7 @@
         try {
             let memoryMax = (((memoryInput.value) * 1024) * 0.75);
             let memoryRecommended = (4096 + (threadCountInput.value * 512));
-            if (memoryRecommended > memoryMax) {
-                memoryRecommended = memoryMax;
-            }
+            memoryRecommended = Math.min(memoryMax, memoryRecommended);
 
             // TODO: Fix XMS when too low memory
             calculationResultElement.innerHTML = "You should allocate: " + memoryRecommended + "MB; <span class=\"codeBox\">-Xmx" + memoryRecommended + "M -Xms4096M</span><button>Copy</button><br>";
